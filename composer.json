@@ -13,6 +13,7 @@
     "require": {
         "ext-pdo_pgsql": "*",
         "silex/silex": "~2.0",
-        "doctrine/dbal": "~2.2"
+        "doctrine/dbal": "~2.2",
+        "twig/twig": "^1.27"
     }
 }

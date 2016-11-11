@@ -1,28 +1,28 @@
 <?php
 
-namespace CrudSample\CrudSample\Http;
+namespace CrudSample\Http\Api;
 
 use CrudSample\Http\Controller;
+use CrudSample\Storage\Profile as Storage;
+use Symfony\Component\HttpFoundation\Request;
 
 class Profile extends Controller
 {
-    public function get()
+    public function getAll(Request $request)
     {
-
+        $storage = new Storage($this->getDb());
+        return $this->app->json($storage->find(), 200);
     }
 
-    public function create()
+    public function get($id)
     {
+        $storage = new Storage($this->getDb());
+        $profile = $storage->findById($id);
 
-    }
+        if (! $profile) {
+            return $this->app->json(['message' => 'Not Found'], 404);
+        }
 
-    public function update()
-    {
-
-    }
-
-    public function delete()
-    {
-
+        return $this->app->json($profile, 200);
     }
 }

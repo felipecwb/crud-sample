@@ -2,7 +2,6 @@
 
 namespace CrudSample\Domain;
 
-use CrudSample\Storage\User;
 use Symfony\Component\HttpFoundation\Session\Session;
 
 class Account
@@ -13,17 +12,16 @@ class Account
     private $session;
 
     /**
-     * @var User
-     */
-    private $storage;
-
-    /**
      * @param Session $session
      */
-    public function __construct(Session $session, User $storage)
+    public function __construct(Session $session)
     {
         $this->session = $session;
-        $this->storage = $storage;
+    }
+
+    public function getId()
+    {
+        return $this->session->getId();
     }
 
     public function isLogged()
@@ -31,14 +29,16 @@ class Account
         return $this->session->get('logged');
     }
 
-    public function login()
+    public function login(User $user)
     {
-
+        $this->session->set('user', $user);
+        $this->session->set('logged', true);
     }
 
     public function logout()
     {
-
+        $this->session->set('user', null);
+        $this->session->set('logged', false);
     }
 
     public function getUser()

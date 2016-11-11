@@ -3,8 +3,9 @@
 namespace CrudSample\Domain;
 
 use DateTime;
+use JsonSerializable;
 
-class Profile
+class Profile implements JsonSerializable
 {
     const TYPE_ADMIN = 1;
     const TYPE_MANAGER = 2;
@@ -58,11 +59,22 @@ class Profile
 
     public function hasWritePermission()
     {
-        return in_array($this->id, [TYPE_ADMIN, TYPE_MANAGER]);
+        return in_array($this->id, [self::TYPE_ADMIN, self::TYPE_MANAGER]);
     }
 
     public function hasReadPermission()
     {
         return true;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            'id' => $this->getId(),
+            'name' => $this->getName(),
+            'type' => $this->getType(),
+            'hasWritePermission' => $this->hasWritePermission(),
+            'hasReadPermission' => $this->hasReadPermission()
+        ];
     }
 }

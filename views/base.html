@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{% block page_title %}{% endblock %} - CrudSample</title>
+
+        <script src="https://unpkg.com/react@15.3.2/dist/react.min.js"></script>
+        <script src="https://unpkg.com/react-dom@15.3.2/dist/react-dom.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.6/semantic.min.css" rel="stylesheet" type="text/css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.6/semantic.min.js"></script>
+    </head>
+
+    <body id="root">
+        {% block content %}{% endblock %}
+    </body>
+</html>

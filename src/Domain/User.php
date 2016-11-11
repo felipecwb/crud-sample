@@ -3,9 +3,10 @@
 namespace CrudSample\Domain;
 
 use DateTime;
+use JsonSerializable;
 use InvalidArgumentException;
 
-class User
+class User implements JsonSerializable
 {
     /**
      * @var int
@@ -100,5 +101,17 @@ class User
     {
         $this->profile = $profile;
         return $this;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            'id' => $this->getId(),
+            'name' => $this->getName(),
+            'email' => $this->getEmail(),
+            'password' => $this->getPassword(),
+            'birthDate' => $this->getBirthDate()->format('Y-m-d'),
+            'profile' => $this->getProfile()
+        ];
     }
 }

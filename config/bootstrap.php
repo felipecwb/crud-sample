@@ -6,6 +6,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 return new Application([
     'debug' => true,
+    // directory
+    'directory.base' => dirname(__DIR__),
     // database
     'database.info' => [
         'host' => '0.0.0.0',

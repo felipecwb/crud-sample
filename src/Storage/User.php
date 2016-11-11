@@ -65,17 +65,40 @@ class User extends Database
 
     public function create(UserEntity $user)
     {
+        $s = $this->db->insert('tb_user', [
+            'user_fullname' => $user->getName(),
+            'user_email' => $user->getEmail(),
+            'user_password' => $user->getPassword(),
+            'user_birth_date' => $user->getBirthDate()->format('Y-m-d'),
+            'user_profile' => $user->getProfile()->getId()
+        ]);
 
+        if ($s) {
+            return $this->db->lastInsertId();
+        }
+
+        return false;
     }
 
     public function update(UserEntity $user)
     {
+        $fields = [
+            'user_fullname' => $user->getName(),
+            'user_email' => $user->getEmail(),
+            'user_birth_date' => $user->getBirthDate()->format('Y-m-d'),
+            'user_profile' => $user->getProfile()->getId()
+        ];
 
+        if ('user_password' => $user->getPassword()) {
+            $fields['user_password'] = $user->getPassword();
+        }
+
+        return $this->db->update('tb_user', $fields, ['user_id' => $user->getId()]);
     }
 
     public function remove(UserEntity $user)
     {
-
+        return $this->db->delete('tb_user', ['user_id' => $user->getId()]);
     }
 
     protected function exchange(array $data = array())

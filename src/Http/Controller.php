@@ -16,4 +16,14 @@ abstract class Controller
     {
         $this->app = $app;
     }
+
+    public function getDb()
+    {
+        return $this->app['db'];
+    }
+
+    public function getTwig()
+    {
+        return $this->app['twig'];
+    }
 }
