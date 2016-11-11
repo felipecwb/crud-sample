@@ -44,7 +44,7 @@ class Container extends React.Component {
                 <Header />
                 <hr />
                 <br /><br />
-                <div className="ui grid">
+                <div id="intern" className="ui grid">
                     {this.props.children}
                 </div>
             </div>
@@ -53,70 +53,252 @@ class Container extends React.Component {
 }
 
 class UsersTable extends React.Component {
-    constructor(props) {
-        super(props);
+    componentWillMount() {
+        this.load();
+    }
 
+    load() {
         jQuery.ajax({
             url: '/api/user',
             method: 'GET',
-            async: false,
             dataType: 'json',
-            complete: (xhr) => {
-                this.state = {users: xhr.responseJSON};
-            }
+            async: false,
+            complete: xhr => this.setState({users: xhr.responseJSON})
         });
     }
 
     render() {
-        let rows = this.state.users.map(user => <UserRow user={user}/>);
+        let users = this.state.users.map(user => <UserRow user={user}/>);
 
         return (
-            <table className="ui striped table users">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>E-mail</th>
-                  <th>Birth Date</th>
-                  <th>Perfil</th>
-                  <th>Alterar</th>
-                  <th>Remover</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows}
-              </tbody>
-            </table>
+            <div>
+                <UserAdd reload={this.load}/>
+                <table className="ui striped table users">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>E-mail</th>
+                      <th>Data de Nascimento</th>
+                      <th>Perfil</th>
+                      <th>Alterar</th>
+                      <th>Remover</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users}
+                  </tbody>
+                </table>
+                <div className="to-edit"></div>
+            </div>
         );
     }
 }
 
 class UserRow extends React.Component {
-    constructor(props) {
-        super(props);
-        this.props.user.birthDate = new Date(this.props.user.birthDate + 'T00:00:00-03:00');
+    render() {
+        let user = this.props.user;
 
+        if (! (user.birthDate instanceof Date)) {
+            user.birthDate = new Date(user.birthDate + 'T00:00:00-03:00');
+        }
+
+        return (
+            <tr className="user" data-id={user.id}>
+              <td>{user.name}</td>
+              <td>{user.email}</td>
+              <td>{user.birthDate.toLocaleDateString('pt-BR')}</td>
+              <td>{user.profile.name}</td>
+              <td><ButtonUserUpdate user={user} /></td>
+              <td><ButtonUserDelete user={user} /></td>
+            </tr>
+        );
+    }
+}
+
+class UserAdd extends React.Component {
+    click() {
+        jQuery('form.add-user').toggle('slow');
     }
     render() {
         return (
-            <tr className="user" data-id={this.props.user.id}>
-              <td>{this.props.user.name}</td>
-              <td>{this.props.user.email}</td>
-              <td>{this.props.user.birthDate.toLocaleDateString('pt-BR')}</td>
-              <td>{this.props.user.profile.name}</td>
-              <td><ButtonUserUpdate user={this.props.user} /></td>
-              <td><ButtonUserDelete user={this.props.user} /></td>
-            </tr>
+            <div>
+                <button onClick={this.click.bind(this)}>
+                    <i className="add user icon"></i> Adicionar Usuário
+                </button>
+                <br/>
+                <FormAdd reload={this.props.reload}/>
+            </div>
+        );
+    }
+}
+
+class FormAdd extends React.Component {
+    componentWillMount() {
+        jQuery.ajax({
+            url: '/api/profile',
+            method: 'GET',
+            async: false,
+            dataType: 'json',
+            complete: xhr => this.setState({profiles: xhr.responseJSON})
+        });
+    }
+
+    send(e) {
+        e.preventDefault();
+        let $form = jQuery('form.add-user');
+
+        jQuery.ajax({
+            url: '/api/user',
+            method: 'POST',
+            data: $form.serialize(),
+            dataType: 'json',
+            beforeSend: () => $form.addClass('loading'),
+            complete: xhr => {
+                let result = xhr.responseJSON;
+                console.log(result);
+
+                $form.removeClass('loading').slideUp('slow')[0].reset();
+
+                if (result.status == 0) {
+                    alert('Usuario Criado');
+                    window.location.reload();
+                    return;
+                }
+
+                alert(result.message);
+            }
+        });
+    }
+
+    render() {
+        let profiles = this.state.profiles.map(profile => <option value={profile.id}>{profile.name}</option>);
+
+        return (
+            <form className="ui form add-user" style={{display:'none'}}>
+                <hr/>
+                <div className="field">
+                    <label>Name:</label>
+                    <input type="text" name="name" placeholder="Nome" />
+                </div>
+                <div className="field">
+                    <label>Email:</label>
+                    <input type="email" name="email" placeholder="Email" />
+                </div>
+                <div className="field">
+                    <label>Senha:</label>
+                    <input type="password" name="password" placeholder="Senha" />
+                </div>
+                <div className="field">
+                    <label>Data de Nascimento:</label>
+                    <input type="date" name="birthDate" placeholder="Nascimento" />
+                </div>
+                <div className="field">
+                    <label>Perfil:</label>
+                    <select name="profile">
+                        {profiles}
+                    </select>
+                </div>
+
+                <button className="ui primary button" onClick={this.send.bind(this)}>Cadastrar</button>
+                <hr/>
+            </form>
         );
     }
 }
 
 class ButtonUserUpdate extends React.Component {
     click() {
-        alert('update '  + this.props.user.name);
+        ReactDOM.render(<FormEdit user={this.props.user}/>, document.querySelector('div.to-edit'));
     }
     render() {
         return (
             <button onClick={this.click.bind(this)}><i className="refresh icon"></i></button>
+        );
+    }
+}
+
+class FormEdit extends React.Component {
+    componentWillMount() {
+        jQuery.ajax({
+            url: '/api/profile',
+            method: 'GET',
+            async: false,
+            dataType: 'json',
+            complete: xhr => this.setState({profiles: xhr.responseJSON})
+        });
+    }
+
+    componentDidMount() {
+        jQuery('form.edit-user input[name=profile]').val(this.props.user.profile.id);
+    }
+
+    send(e) {
+        e.preventDefault();
+        let $form = jQuery('form.edit-user');
+
+        jQuery.ajax({
+            url: '/api/user/' + this.props.user.id,
+            method: 'PUT',
+            data: $form.serialize(),
+            dataType: 'json',
+            beforeSend: () => $form.addClass('loading'),
+            complete: xhr => {
+                let result = xhr.responseJSON;
+
+                $form.removeClass('loading').slideUp('slow')[0].reset();
+
+                if (result.status == 0) {
+                    alert('Usuario Alterado');
+                    window.location.reload();
+                    return;
+                }
+
+                alert(result.message);
+            }
+        });
+    }
+
+    cancel(e) {
+        e.preventDefault();
+        jQuery('form.edit-user').remove();
+    }
+
+    render() {
+        let u = this.props.user;
+        let profiles = this.state.profiles.map(profile => {
+            return <option value={profile.id}>{profile.name}</option>;
+        });
+
+        return (
+            <form className="ui form edit-user">
+                <hr/>
+                <div className="field">
+                    <label>Name:</label>
+                    <input type="text" name="name" placeholder="Nome" defaultValue={u.name} />
+                </div>
+                <div className="field">
+                    <label>Email:</label>
+                    <input type="email" name="email" placeholder="Email" defaultValue={u.email}/>
+                </div>
+                <div className="field">
+                    <label>Senha:</label>
+                    <input type="password" name="password" placeholder="Senha" defaultValue={u.password}/>
+                </div>
+                <div className="field">
+                    <label>Data de Nascimento:</label>
+                    <input type="date" name="birthDate" placeholder="Nascimento" defaultValue={u.birthDate}/>
+                </div>
+                <div className="field">
+                    <label>Perfil:</label>
+                    <select name="profile" defaultValue={u.profile.id}>
+                        {profiles}
+                    </select>
+                </div>
+
+                <button className="ui primary button" onClick={this.send.bind(this)}>Cadastrar</button>
+                <button className="ui button" onClick={this.cancel.bind(this)}>Cancelar</button>
+                <hr/>
+            </form>
         );
     }
 }
@@ -133,14 +315,13 @@ class ButtonUserDelete extends React.Component {
             url: '/api/user/' + this.props.user.id,
             method: 'DELETE',
             dataType: 'json',
-            beforeSend: () => $r.addClass('loading');
+            beforeSend: () => $r.addClass('loading'),
             complete: (xhr) => {
                 $r.removeClass('loading');
-                result = xhr.responseJSON;
+                let result = xhr.responseJSON;
 
                 if (result.status == 0) {
-                    jQuery(`table.users tr.user[data-id=${this.props.user.id}]`)
-                        .hide(400, () => jQuery(this).remove());
+                    jQuery(`table.users tr.user[data-id=${this.props.user.id}]`).remove();
 
                     alert('Removido com sucesso!');
                     return;

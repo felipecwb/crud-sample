@@ -89,7 +89,7 @@ class User extends Database
             'user_profile' => $user->getProfile()->getId()
         ];
 
-        if ('user_password' => $user->getPassword()) {
+        if ($user->getPassword()) {
             $fields['user_password'] = $user->getPassword();
         }
 

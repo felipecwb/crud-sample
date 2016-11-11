@@ -3,7 +3,9 @@
 namespace CrudSample\Http\Api;
 
 use DateTime;
+use InvalidArgumentException;
 use CrudSample\Http\Controller;
+use CrudSample\Domain\Account;
 use CrudSample\Domain\User as UserEntity;
 use CrudSample\Storage\User as Storage;
 use CrudSample\Storage\Profile as ProfileStorage;
@@ -31,28 +33,34 @@ class User extends Controller
 
     public function create(Request $request)
     {
-        $user = new UserEntity();
-        $user->setName($request->get('name'))
-            ->setEmail($request->get('email'))
-            ->setPassword($request->get('password'));
-
-        $birthDate = $request->get('birthDate');
-        if ($birthDate) {
-            $user->setBirthDate(new DateTime($birthDate));
+        if (! $this->canWrite()) {
+            return $this->app->json(['status' => 5, 'message' => 'Sem Permissão'], 401);
         }
 
-        $profileId = $request->get('profile');
-        if ($profileId != $user->getProfile()->getId()) {
-            $storage = new ProfileStorage($this->getDb());
-            $profile = $storage->findById($profileId);
+        try {
+            $user = new UserEntity();
+            $user->setName($request->get('name'))
+                ->setEmail($request->get('email'))
+                ->setPassword($request->get('password'));
 
-            if (! $profile) {
-                return $this->app->json(['status' => 2, 'message' => 'Perfil desconhecido'], 400);
+            $birthDate = $request->get('birthDate');
+            if ($birthDate) {
+                $user->setBirthDate(new DateTime($birthDate));
             }
-
-            $user->setProfile($profile);
+        } catch (InvalidArgumentException $e) {
+            return $this->app->json(['status' => 4, 'message' => 'Dados Invalidos'], 400);
         }
 
+        $profileStorage = new ProfileStorage($this->getDb());
+        $profile = $profileStorage->findById($request->get('profile'));
+
+        if (! $profile) {
+            return $this->app->json(['status' => 2, 'message' => 'Perfil desconhecido'], 400);
+        }
+
+        $user->setProfile($profile);
+
+        $storage = new Storage($this->getDb());
         if (! $id = $storage->create($user)) {
             return $this->app->json(['status' => 1, 'message' => 'Problemas para criar'], 500);
         }
@@ -62,6 +70,10 @@ class User extends Controller
 
     public function update($id, Request $request)
     {
+        if (! $this->canWrite()) {
+            return $this->app->json(['status' => 5, 'message' => 'Sem Permissão'], 401);
+        }
+
         $storage = new Storage($this->getDb());
         $user = $storage->findById($id);
 
@@ -98,6 +110,10 @@ class User extends Controller
 
     public function delete($id)
     {
+        if (! $this->canWrite()) {
+            return $this->app->json(['status' => 5, 'message' => 'Sem Permissão'], 401);
+        }
+
         $storage = new Storage($this->getDb());
         $user = $storage->findById($id);
 
@@ -110,5 +126,13 @@ class User extends Controller
         }
 
         return $this->app->json(['status' => 0, 'message' => 'Deletado'], 200);
+    }
+
+    protected function canWrite()
+    {
+        $account = new Account($this->app['session']);
+        return $account->getUser()
+                        ->getProfile()
+                        ->hasWritePermission();
     }
 }

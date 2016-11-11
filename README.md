@@ -17,6 +17,8 @@ $ PGPASSWORD=pass psql \
     -f data/dump.sql
 ```
 
+The `config/bootstrap.php` contains the info for connect to the database.
+
 Dependencies:
 ```sh
 composer install
@@ -26,3 +28,5 @@ Run PHP server:
 ```sh
 $ php -S 0.0.0.0:8080 -t public public/index.php
 ```
+
+Using ~ReactJS~ (not really) Copy and Past pattern with JSX
