@@ -16,3 +16,13 @@ $ PGPASSWORD=pass psql \
     -d postgres\
     -f data/dump.sql
 ```
+
+Dependencies:
+```sh
+composer install
+```
+
+Run PHP server:
+```sh
+$ php -S 0.0.0.0:8080 -t public public/index.php
+```
