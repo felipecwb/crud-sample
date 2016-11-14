@@ -147,6 +147,13 @@ class FormAdd extends React.Component {
         e.preventDefault();
         let $form = jQuery('form.add-user');
 
+        let p = $form.find('[name=password]').val(),
+            cp = $form.find('[name=confirm_password]').val();
+
+        if (p !== cp) {
+            return alert("As Senhas não conferem!");
+        }
+
         jQuery.ajax({
             url: '/api/user',
             method: 'POST',
@@ -187,6 +194,10 @@ class FormAdd extends React.Component {
                 <div className="field">
                     <label>Senha:</label>
                     <input type="password" name="password" placeholder="Senha" />
+                </div>
+                <div className="field">
+                    <label>Senha:</label>
+                    <input type="password" name="confirm_password" placeholder="Confirmar Senha" />
                 </div>
                 <div className="field">
                     <label>Data de Nascimento:</label>
@@ -236,6 +247,13 @@ class FormEdit extends React.Component {
         e.preventDefault();
         let $form = jQuery('form.edit-user');
 
+        let p = $form.find('[name=password]').val(),
+            cp = $form.find('[name=confirm_password]').val();
+
+        if (p !== cp) {
+            return alert("As Senhas não conferem!");
+        }
+
         jQuery.ajax({
             url: '/api/user/' + this.props.user.id,
             method: 'PUT',
@@ -245,7 +263,7 @@ class FormEdit extends React.Component {
             complete: xhr => {
                 let result = xhr.responseJSON;
 
-                $form.removeClass('loading').slideUp('slow')[0].reset();
+                $form.removeClass('loading').slideUp('slow').remove();
 
                 if (result.status == 0) {
                     alert('Usuario Alterado');
@@ -265,6 +283,7 @@ class FormEdit extends React.Component {
 
     render() {
         let u = this.props.user;
+        u.birthDate = u.birthDate.toISOString().substring(0, 10);
         let profiles = this.state.profiles.map(profile => {
             return <option value={profile.id}>{profile.name}</option>;
         });
@@ -282,7 +301,11 @@ class FormEdit extends React.Component {
                 </div>
                 <div className="field">
                     <label>Senha:</label>
-                    <input type="password" name="password" placeholder="Senha" defaultValue={u.password}/>
+                    <input type="password" name="password" placeholder="Senha"/>
+                </div>
+                <div className="field">
+                    <label>Senha:</label>
+                    <input type="password" name="confirm_password" placeholder="Confirmar Senha" />
                 </div>
                 <div className="field">
                     <label>Data de Nascimento:</label>
