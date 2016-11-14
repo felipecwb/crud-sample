@@ -34,6 +34,10 @@ class Button extends React.Component {
 
                 let result = xhr.responseJSON;
 
+                if (! result) {
+                    return alert('Problemas para logar');
+                }
+
                 if (result.status == 0) {
                     window.location.href = '/backend';
                     return;
