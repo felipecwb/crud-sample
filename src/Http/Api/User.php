@@ -48,7 +48,7 @@ class User extends Controller
                 $user->setBirthDate(new DateTime($birthDate));
             }
         } catch (InvalidArgumentException $e) {
-            return $this->app->json(['status' => 4, 'message' => 'Dados Invalidos'], 400);
+            return $this->app->json(['status' => 4, 'message' => 'Dados Invalidos, Verifique os campos'], 400);
         }
 
         $profileStorage = new ProfileStorage($this->getDb());
